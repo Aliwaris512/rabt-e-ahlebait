@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, ArrowRight, CalendarDays, CircleHelp, Clock3, LogIn, LogOut, MapPin, RefreshCw, ShieldCheck } from 'lucide-react'
 import { supabase } from './lib/supabaseClient.js'
 import {
-  deleteCalendarRecord, fetchAdminIslamicData, fetchHijriForDate, fetchPrayerTimes,
+  deleteCalendarRecord, fetchAdminIslamicData, fetchHijriForMonth, fetchPrayerTimes,
   fetchPublishedIslamicData, formatInputDate, saveDateOverride, saveOccasion,
 } from './lib/islamicCalendar.js'
 
@@ -126,8 +126,8 @@ export function IslamicCalendar() {
     setLoading(true)
     setError('')
     try {
-      const results = await Promise.all(grid.map((date) => fetchHijriForDate(date).catch(() => null)))
-      setDays(Object.fromEntries(grid.map((date, index) => [formatInputDate(date), results[index]])))
+      const monthData = await fetchHijriForMonth(month)
+      setDays(monthData)
     } catch (loadError) {
       setError(loadError.message)
     } finally {

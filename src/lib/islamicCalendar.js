@@ -105,6 +105,35 @@ export async function fetchHijriForDate(date) {
   })
 }
 
+export async function fetchHijriForMonth(date) {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const key = `hijri-month-${year}-${month}`
+  const saved = cached(key)
+  if (saved) return saved
+  const data = await alAdhan(`calendar/${year}/${month}`, {
+    latitude: '31.5204',
+    longitude: '74.3587',
+    method: '0',
+    timezone: 'Asia/Karachi',
+  })
+  const result = Object.fromEntries(data.map((entry) => {
+    const hijri = entry.date.hijri
+    const gregorian = entry.date.gregorian.date.split('-').reverse().join('-')
+    return [gregorian, {
+      gregorianDate: gregorian,
+      hijriDay: Number(hijri.day),
+      hijriMonth: Number(hijri.month.number),
+      hijriMonthName: hijri.month.en,
+      hijriMonthNameArabic: hijri.month.ar,
+      hijriYear: Number(hijri.year),
+      hijriDate: hijri.date,
+      status: 'calculated',
+    }]
+  }))
+  return cache(key, result)
+}
+
 export async function fetchPrayerTimes(date, city) {
   const key = `prayers-${formatInputDate(date)}-${city.name}`
   const saved = cached(key, 60 * 60 * 1000)
