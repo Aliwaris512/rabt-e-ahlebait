@@ -37,6 +37,45 @@ University listings and logos are configurable placeholders where appropriate; l
 
 The page submits reviews to Supabase with an `approved` status, so new feedback appears publicly immediately after submission.
 
+## Announcements
+
+The public announcements page is available at `/announcements`. Authorized administrators manage announcements at `/admin/announcements` using Supabase Auth email/password sign-in. Announcements can contain a title, multiline text, an optional image, and an optional event date/time.
+
+### Configure announcements in Supabase
+
+Run [`supabase/migrations/002_create_announcements.sql`](./supabase/migrations/002_create_announcements.sql) in the Supabase Dashboard **SQL Editor** after the reviews migration. This creates the announcements table, the public `announcements` Storage bucket, RLS policies, and the `announcement_admins` authorization table. It does not create an administrator or store any credentials.
+
+To authorize an administrator:
+
+1. In Supabase Dashboard, open **Authentication → Users** and create or invite the administrator with email/password.
+2. Copy that user's UUID.
+3. Run this SQL in the SQL Editor, replacing the placeholder:
+
+```sql
+insert into public.announcement_admins (user_id)
+values ('AUTH_USER_UUID');
+```
+
+Only users listed in `announcement_admins` can read drafts, create, edit, publish, unpublish, or delete announcements and upload/delete announcement images. The frontend uses only the publishable Supabase key; never put a `service_role` key in `.env` or frontend code.
+
+If email confirmation is enabled in Supabase Auth, confirm the administrator's email before signing in. If you want to use a different Auth provider, enable it in Supabase and adapt the sign-in form before deployment.
+
+## Pakistan Shia Islamic Calendar and Jafari Prayer Times
+
+The public calendar is available at `/islamic-calendar`, with administration at `/admin/islamic-calendar`. Run [`supabase/migrations/003_create_islamic_calendar.sql`](./supabase/migrations/003_create_islamic_calendar.sql) after migration 002. It creates RLS-protected occasion and confirmed-date tables and reuses the existing `is_announcement_admin()` allowlist. No administrator credentials or service-role key are stored in the frontend.
+
+Shia.pk was inspected as the Pakistan-focused reference. It provides public community/prayer information but no documented public calendar API suitable for this frontend, so its pages are not scraped. Confirmed Pakistani Shia dates must be entered by an authorized administrator in the calendar admin page with a source and reason. Public visitors see only published occasions and `verified`/`confirmed` overrides; awaiting dates remain hidden from the public confirmed data.
+
+Calculated Hijri dates use AlAdhan's `gToH` endpoint as an estimate. Prayer times use the browser directly against AlAdhan's daily timings endpoint:
+
+```text
+https://api.aladhan.com/v1/timings/{DD-MM-YYYY}?latitude={city_latitude}&longitude={city_longitude}&method=0&timezonestring=Asia/Karachi&midnight=JAFARI
+```
+
+`method=0` is Jafari/Shia Ithna-Ashari, and the UI displays the city, timezone, method, and Jafari midnight setting. Prayer results are cached in browser storage for one hour and Hijri results for twelve hours. Prayer calculations can differ from local mosque timetables. The city list currently includes Lahore, Karachi, Islamabad, Rawalpindi, Peshawar, and Quetta.
+
+To maintain verified data, sign in at `/admin/islamic-calendar` with a Supabase Auth user already listed in `public.announcement_admins`. Add each occasion with its Hijri month/day and source, then add confirmed Gregorian overrides after reliable Pakistan/community confirmation. Do not label an AlAdhan estimate as a moon-sighting confirmation.
+
 ### Configure Supabase
 
 The local [`.env.local`](./.env.local) contains the supplied project URL and publishable key. Do not add a `service_role` key to frontend files. For another environment, copy [`.env.example`](./.env.example) and set:

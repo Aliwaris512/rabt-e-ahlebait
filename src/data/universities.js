@@ -4,6 +4,7 @@ export const universities = [
     shortName: 'UCP',
     path: '/partner-universities/ucp',
     logo: 'UCP',
+    logoImage: '/assets/ucp%20logo.jpg',
     location: 'Lahore, Pakistan',
     image: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1100&q=85',
     description: 'A student chapter creating space for faith, learning and community service at the University of Central Punjab.',

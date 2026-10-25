@@ -1,21 +1,29 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ArrowLeft, ArrowRight, BookOpen, Check, ChevronDown, CircleHelp,
-  Compass, Eye, HeartHandshake, House, Instagram, Landmark, Mail, Menu,
-  MessageCircle, MessageSquareText, Search, ShieldCheck, Sparkles, Star, Target, Users, X,
+  ArrowLeft, ArrowRight, BookOpen, Calendar, Check, ChevronDown, CircleHelp,
+  Compass, Eye, HeartHandshake, House, Image, Instagram, Landmark, LogIn, LogOut, Mail, Menu,
+  MessageCircle, MessageSquareText, Pencil, Search, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, Users, X,
 } from 'lucide-react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { chapterActivities, universities } from './data/universities.js'
 import { fetchApprovedReviews, submitReview } from './lib/reviews.js'
+import {
+  createAnnouncement, deleteAnnouncement, fetchAdminAnnouncements, fetchPublishedAnnouncements,
+  removeAnnouncementImage, updateAnnouncement, uploadAnnouncementImage,
+} from './lib/announcements.js'
+import { supabase } from './lib/supabaseClient.js'
+import { AdminIslamicCalendar, IslamicCalendar } from './IslamicCalendar.jsx'
 
 const pages = [
   { label: 'Home', to: '/', icon: House, description: 'Welcome to Rabt-e-Ahlebait' },
-  { label: 'Founder', to: '/founder', icon: Users, description: 'Meet the founder of the network' },
+  // { label: 'Founder', to: '/founder', icon: Users, description: 'Meet the founder of the network' },
   { label: 'Mission & Vision', to: '/mission-vision', icon: Compass, description: 'Our purpose and aspirations' },
   { label: 'Policies', to: '/policies', icon: ShieldCheck, description: 'The principles that guide us' },
   { label: 'Partner Universities', to: '/partner-universities', icon: Landmark, description: 'Explore university listings' },
   { label: 'Contact', to: '/contact', icon: MessageCircle, description: 'Get in touch with our team' },
   { label: 'Reviews & Suggestions', to: '/reviews', icon: MessageSquareText, description: 'Share feedback and suggestions' },
+  { label: 'Announcements', to: '/announcements', icon: Calendar, description: 'View community announcements and events' },
+  { label: 'Islamic Calendar', to: '/islamic-calendar', icon: Calendar, description: 'Pakistan Shia calendar and Jafari prayer times' },
 ]
 
 const policies = [
@@ -74,7 +82,7 @@ function Sidebar({ open, onClose }) {
       <aside className={`sidebar${open ? ' sidebar-open' : ''}`} aria-label="Main navigation">
         <div className="sidebar-top"><Logo /><button className="drawer-close" aria-label="Close menu" onClick={onClose}><X size={20} /></button></div>
         <nav className="side-nav">
-          {pages.slice(0, 4).map(({ label, to, icon: Icon }) => (
+          {pages.slice(0, 3).map(({ label, to, icon: Icon }) => (
             <NavLink key={to} to={to} end={to === '/'} onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
               <Icon size={16} strokeWidth={1.8} /><span>{label}</span>
             </NavLink>
@@ -91,6 +99,9 @@ function Sidebar({ open, onClose }) {
           </NavLink>
           <NavLink to="/reviews" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
             <MessageSquareText size={16} strokeWidth={1.8} /><span>Reviews & Suggestions</span>
+          </NavLink>
+          <NavLink to="/islamic-calendar" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
+            <Calendar size={16} strokeWidth={1.8} /><span>Islamic Calendar</span>
           </NavLink>
         </nav>
         <div className="sidebar-bottom">
@@ -231,7 +242,9 @@ function Policies() {
 
 function UniversityCard({ university }) {
   return <Link className="university-card" to={university.path}>
-    <div className="university-emblem" aria-label={`${university.shortName} logo placeholder`}>{university.logo}</div>
+    <div className="university-emblem" aria-label={`${university.shortName} logo`}>
+      {university.logoImage ? <img src={university.logoImage} alt={`${university.name} logo`} /> : university.logo}
+    </div>
     <span className="university-location">{university.location}</span><h2>{university.name}</h2>
     <span className="university-visit">View listing <ArrowRight size={14} /></span>
   </Link>
@@ -249,6 +262,34 @@ function UniversityDetail() {
   const { slug } = useParams()
   const university = universities.find((item) => item.path.split('/').pop() === slug && item.path !== '/partner-universities/other')
   if (!university) return <NotFound />
+  if (slug === 'ucp') {
+    return <PageFrame className="content-page detail-page">
+      <PageHeader title="University of Central Punjab (UCP)" breadcrumb={[{ label: 'Partner Universities', to: '/partner-universities' }, { label: university.shortName }]} />
+      <div className="ucp-announcement">
+        <p>We are delighted to announce that the University of Central Punjab (UCP) is now officially connected with Rabt-e-Ahlebayt, bringing our community closer together in promoting Islamic values and spreading the message of love for the Ahl-e-Bayt (A.S.).</p>
+        <p>From now on, all updates regarding Islamic events, religious occasions, announcements, and activities at UCP will be available through both the Rabt-e-Ahlebayt platform and the UCP page.</p>
+        <p>You can also explore our social media platforms through this page, including our Instagram feed, to stay connected with the latest updates and activities.</p>
+        <p>Two platforms, one community, one mission, spreading the message of the Ahl-e-Bayt (A.S.).</p>
+      </div>
+      <section className="management-team">
+        <h2>Management Team</h2>
+        <div className="management-team-grid">
+          <div className="management-member">
+            <img src="/assets/shazim.jpeg" alt="Shazim Haider" />
+            <h3>Shazim Haider</h3>
+          </div>
+          <div className="management-member">
+            <img src="/assets/shazaib.jpeg" alt="Shahzaib Ali" />
+            <h3>Shahzaib Ali</h3>
+          </div>
+          <div className="management-member">
+            <img src="/assets/hur.jpeg" alt="Hurr Shah" />
+            <h3>Hurr Shah</h3>
+          </div>
+        </div>
+      </section>
+    </PageFrame>
+  }
   return <PageFrame className="content-page detail-page">
     <PageHeader title={university.name} breadcrumb={[{ label: 'Partner Universities', to: '/partner-universities' }, { label: university.shortName }]} />
     <section className="chapter-layout">
@@ -409,19 +450,236 @@ function Reviews() {
   </PageFrame>
 }
 
+function formatEventDate(eventAt) {
+  if (!eventAt) return ''
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(eventAt))
+}
+
+function Announcements() {
+  const [entries, setEntries] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetchPublishedAnnouncements()
+      .then(setEntries)
+      .catch((loadError) => setError(loadError.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  return <PageFrame className="content-page announcements-page">
+    <PageHeader title="Announcements" description="Stay connected with the latest Rabt-e-Ahlebait updates, events and community activities." />
+    {loading && <div className="announcements-empty"><p>Loading announcements…</p></div>}
+    {!loading && error && <div className="announcements-empty"><CircleHelp size={24} /><h2>Announcements are unavailable</h2><p>{error}</p></div>}
+    {!loading && !error && entries.length === 0 && <div className="announcements-empty"><Calendar size={24} /><h2>No announcements yet</h2><p>Published updates and events will appear here.</p></div>}
+    {!loading && !error && entries.length > 0 && <section className="announcement-grid" aria-label="Published announcements">
+      {entries.map((entry) => <article className="announcement-card" key={entry.id}>
+        {entry.imageUrl && <img src={entry.imageUrl} alt="" />}
+        <div className="announcement-card-body">
+          {entry.eventAt && <time dateTime={entry.eventAt}><Calendar size={14} />{formatEventDate(entry.eventAt)}</time>}
+          {entry.title && <h2>{entry.title}</h2>}
+          <p>{entry.content}</p>
+        </div>
+      </article>)}
+    </section>}
+  </PageFrame>
+}
+
+const emptyAnnouncementForm = { title: '', content: '', eventAt: '', published: false, imagePath: '', imageUrl: '' }
+
+function AdminAnnouncements() {
+  const [session, setSession] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [entries, setEntries] = useState([])
+  const [form, setForm] = useState(emptyAnnouncementForm)
+  const [editingId, setEditingId] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    if (!supabase) {
+      setAuthLoading(false)
+      return undefined
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setAuthLoading(false)
+    }).catch((loadError) => {
+      setError(loadError.message)
+      setAuthLoading(false)
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession))
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    if (!session) return
+    setLoading(true)
+    fetchAdminAnnouncements()
+      .then(setEntries)
+      .catch((loadError) => setError(loadError.message))
+      .finally(() => setLoading(false))
+  }, [session])
+
+  async function signIn(event) {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    if (!supabase) {
+      setError('Supabase is not configured.')
+      return
+    }
+    setLoading(true)
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    if (signInError) setError(signInError.message)
+    setLoading(false)
+  }
+
+  async function signOut() {
+    if (!supabase) return
+    const { error: signOutError } = await supabase.auth.signOut()
+    if (signOutError) setError(signOutError.message)
+  }
+
+  function editEntry(entry) {
+    setEditingId(entry.id)
+    setForm({
+      title: entry.title,
+      content: entry.content,
+      eventAt: entry.eventAt ? new Date(entry.eventAt).toISOString().slice(0, 16) : '',
+      published: entry.published,
+      imagePath: entry.imagePath || '',
+      imageUrl: entry.imageUrl || '',
+    })
+    setSelectedFile(null)
+    setError('')
+    setMessage('')
+  }
+
+  function resetForm() {
+    setEditingId('')
+    setForm(emptyAnnouncementForm)
+    setSelectedFile(null)
+  }
+
+  async function saveAnnouncement(event) {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    if (!form.content.trim()) {
+      setError('Announcement text is required.')
+      return
+    }
+    setLoading(true)
+    let newImagePath = ''
+    try {
+      if (selectedFile) newImagePath = await uploadAnnouncementImage(selectedFile)
+      const imagePath = newImagePath || form.imagePath
+      const payload = {
+        title: form.title,
+        content: form.content,
+        imagePath,
+        eventAt: form.eventAt ? new Date(form.eventAt).toISOString() : '',
+        published: form.published,
+      }
+      if (editingId) {
+        await updateAnnouncement(editingId, payload)
+        if (newImagePath && form.imagePath) await removeAnnouncementImage(form.imagePath)
+        setMessage('Announcement updated.')
+      } else {
+        await createAnnouncement(payload)
+        setMessage('Announcement created.')
+      }
+      const refreshed = await fetchAdminAnnouncements()
+      setEntries(refreshed)
+      resetForm()
+    } catch (saveError) {
+      let messageText = saveError.message
+      if (newImagePath) {
+        try {
+          await removeAnnouncementImage(newImagePath)
+        } catch (cleanupError) {
+          messageText = `${messageText} The newly uploaded image also could not be cleaned up: ${cleanupError.message}`
+        }
+      }
+      setError(messageText)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function removeEntry(entry) {
+    if (!window.confirm('Delete this announcement?')) return
+    setError('')
+    setMessage('')
+    setLoading(true)
+    try {
+      await deleteAnnouncement(entry.id)
+      setEntries((current) => current.filter((item) => item.id !== entry.id))
+      if (editingId === entry.id) resetForm()
+      setMessage('Announcement deleted.')
+    } catch (deleteError) {
+      setError(deleteError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (authLoading) return <PageFrame className="content-page"><p>Checking administrator access…</p></PageFrame>
+  if (!session) return <PageFrame className="content-page admin-page">
+    <PageHeader title="Announcement Admin" description="Sign in with an authorized Supabase account to manage announcements." />
+    <form className="contact-form admin-login-form" onSubmit={signIn}>
+      <label htmlFor="admin-email">Email</label><input id="admin-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+      <label htmlFor="admin-password">Password</label><input id="admin-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+      {error && <p className="form-feedback form-error" role="alert">{error}</p>}
+      <button className="button button-primary form-submit" type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'} <LogIn size={15} /></button>
+    </form>
+  </PageFrame>
+
+  return <PageFrame className="content-page admin-page">
+    <div className="admin-heading"><PageHeader title="Manage Announcements" description="Create text or image announcements, schedule event details, and control publication." /><button className="button button-outline" onClick={signOut}><LogOut size={15} /> Sign out</button></div>
+    <form className="contact-form announcement-editor" onSubmit={saveAnnouncement}>
+      <h2>{editingId ? 'Edit announcement' : 'New announcement'}</h2>
+      <label htmlFor="announcement-title">Title <span>(optional)</span></label>
+      <input id="announcement-title" maxLength="180" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Announcement title" />
+      <label htmlFor="announcement-content">Text <span>*</span></label>
+      <textarea id="announcement-content" rows="7" maxLength="10000" value={form.content} onChange={(event) => setForm({ ...form, content: event.target.value })} required placeholder="Write the announcement..." />
+      <label htmlFor="announcement-image">Image <span>(optional, max 5 MB)</span></label>
+      <input id="announcement-image" type="file" accept="image/*" onChange={(event) => setSelectedFile(event.target.files?.[0] || null)} />
+      {form.imageUrl && !selectedFile && <img className="admin-image-preview" src={form.imageUrl} alt="Current announcement" />}
+      <label htmlFor="announcement-event">Event date and time <span>(optional)</span></label>
+      <input id="announcement-event" type="datetime-local" value={form.eventAt} onChange={(event) => setForm({ ...form, eventAt: event.target.value })} />
+      <label className="admin-checkbox"><input type="checkbox" checked={form.published} onChange={(event) => setForm({ ...form, published: event.target.checked })} /> Publish publicly</label>
+      {error && <p className="form-feedback form-error" role="alert">{error}</p>}
+      {message && <p className="form-feedback form-success" role="status">{message}</p>}
+      <div className="admin-form-actions"><button className="button button-primary" type="submit" disabled={loading}>{loading ? 'Saving…' : editingId ? 'Save changes' : 'Create announcement'} <Upload size={15} /></button>{editingId && <button className="button button-outline" type="button" onClick={resetForm}>Cancel</button>}</div>
+    </form>
+    <section className="admin-announcement-list"><h2>All announcements</h2>{loading && <p>Loading…</p>}{!loading && entries.map((entry) => <article className="admin-announcement-row" key={entry.id}>
+      <div><strong>{entry.title || 'Untitled announcement'}</strong><span className={entry.published ? 'status-published' : 'status-draft'}>{entry.published ? 'Published' : 'Draft'}</span><p>{entry.content.slice(0, 140)}{entry.content.length > 140 ? '…' : ''}</p></div>
+      <div className="admin-row-actions"><button aria-label={`Edit ${entry.title || 'announcement'}`} onClick={() => editEntry(entry)}><Pencil size={15} /></button><button aria-label={`Delete ${entry.title || 'announcement'}`} onClick={() => removeEntry(entry)}><Trash2 size={15} /></button></div>
+    </article>)}</section>
+  </PageFrame>
+}
+
 function NotFound() {
   return <PageFrame className="content-page not-found"><span className="eyebrow">404 · PAGE NOT FOUND</span><h1>This page has wandered.</h1><p>The page you're looking for doesn't seem to be here.</p><Link className="button button-primary" to="/">Return home <ArrowLeft size={15} /></Link></PageFrame>
 }
 
 const metadata = {
   '/': ['Rabt-e-Ahlebait | Ahle Bait Student Network', 'Uniting students through faith, knowledge, unity and action.'],
-  '/founder': ['Our Founder | Rabt-e-Ahlebait', 'Learn about the vision and foundation of Rabt-e-Ahlebait.'],
+  // '/founder': ['Our Founder | Rabt-e-Ahlebait', 'Learn about the vision and foundation of Rabt-e-Ahlebait.'],
   '/mission-vision': ['Mission & Vision | Rabt-e-Ahlebait', 'Discover the mission and vision that guide Rabt-e-Ahlebait.'],
   '/policies': ['Our Policies | Rabt-e-Ahlebait', 'The values and principles that guide the Rabt-e-Ahlebait student network.'],
   '/partner-universities': ['University Listings | Rabt-e-Ahlebait', 'Explore configurable university listings across Pakistan.'],
   '/partner-universities/other': ['Other Universities | Rabt-e-Ahlebait', 'Explore additional campus listings.'],
   '/contact': ['Contact | Rabt-e-Ahlebait', 'Get in touch with the Rabt-e-Ahlebait student network.'],
   '/reviews': ['Reviews & Suggestions | Rabt-e-Ahlebait', 'Share a review or suggestion for the Rabt-e-Ahlebait student network.'],
+  '/announcements': ['Announcements | Rabt-e-Ahlebait', 'Latest announcements and events from the Rabt-e-Ahlebait student network.'],
+  '/islamic-calendar': ['Pakistan Shia Islamic Calendar | Rabt-e-Ahlebait', 'Pakistan Shia Islamic dates and Jafari prayer times.'],
 }
 
 function App() {
@@ -442,7 +700,7 @@ function App() {
     <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
     <div className="content-shell"><Topbar onMenu={() => setMenuOpen(true)} /><Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/founder" element={<Founder />} />
+      {/* <Route path="/founder" element={<Founder />} /> */}
       <Route path="/mission-vision" element={<MissionVision />} />
       <Route path="/policies" element={<Policies />} />
       <Route path="/partner-universities" element={<PartnerUniversities />} />
@@ -450,6 +708,10 @@ function App() {
       <Route path="/partner-universities/:slug" element={<UniversityDetail />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/reviews" element={<Reviews />} />
+      <Route path="/announcements" element={<Announcements />} />
+      <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+      <Route path="/islamic-calendar" element={<IslamicCalendar />} />
+      <Route path="/admin/islamic-calendar" element={<AdminIslamicCalendar />} />
       <Route path="*" element={<NotFound />} />
     </Routes></div>
   </div>
