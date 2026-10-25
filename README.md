@@ -16,6 +16,13 @@ npm run build
 npm run preview
 ```
 
+### Deploying with Vercel
+
+This is a single-page application, so the included [`vercel.json`](./vercel.json)
+rewrites direct page requests such as `/reviews` to the app entry point. Redeploy
+after adding or changing routes so those URLs work when opened directly or
+refreshed.
+
 ## Project structure
 
 - `src/App.jsx` — routes, shared navigation and page components
