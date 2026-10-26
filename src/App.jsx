@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import emailjs from '@emailjs/browser'
 import {
   ArrowLeft, ArrowRight, BookOpen, Calendar, Check, ChevronDown, CircleHelp,
   Compass, Eye, HeartHandshake, House, Image, Instagram, Landmark, LogIn, LogOut, Mail, Menu,
@@ -271,6 +272,7 @@ function UniversityDetail() {
         <p>You can also explore our social media platforms through this page, including our Instagram feed, to stay connected with the latest updates and activities.</p>
         <p>Two platforms, one community, one mission, spreading the message of the Ahl-e-Bayt (A.S.).</p>
       </div>
+      <div className="ucp-social"><span className="eyebrow">FOLLOW UCP COMMUNITY UPDATES</span><SocialLinks /></div>
       <section className="management-team">
         <h2>Management Team</h2>
         <div className="management-team-grid">
@@ -317,14 +319,22 @@ function OtherUniversities() {
 
 function Contact() {
   const [submitted, setSubmitted] = useState(false)
+  const [submittedName, setSubmittedName] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [communityName, setCommunityName] = useState('')
+  const [universityName, setUniversityName] = useState('')
+  const [degreeName, setDegreeName] = useState('')
+  const [memberCount, setMemberCount] = useState('')
   const [message, setMessage] = useState('')
+  const [website, setWebsite] = useState('')
   const [error, setError] = useState('')
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-    if (!name.trim() || !email.trim() || !message.trim()) {
+    setSubmitted(false)
+    if (!name.trim() || !email.trim() || !communityName.trim() || !universityName.trim() || !degreeName.trim() || !memberCount.trim() || !message.trim()) {
       setError('Please complete all fields before submitting.')
       setSubmitted(false)
       return
@@ -334,8 +344,45 @@ function Contact() {
       setSubmitted(false)
       return
     }
+    if (!/^[1-9]\d*$/.test(memberCount.trim())) {
+      setError('Please enter a valid number of community members.')
+      return
+    }
+    const emailjsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim()
+    const emailjsTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim()
+    const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim()
+    if (!emailjsServiceId || !emailjsTemplateId || !emailjsPublicKey) {
+      setError('Community registration is not configured yet. Please try again later.')
+      return
+    }
     setError('')
-    setSubmitted(true)
+    setSubmitting(true)
+    try {
+      await emailjs.send(emailjsServiceId, emailjsTemplateId, {
+        name: name.trim(),
+        email: email.trim(),
+        communityName: communityName.trim(),
+        universityName: universityName.trim(),
+        degreeName: degreeName.trim(),
+        memberCount: memberCount.trim(),
+        message: message.trim(),
+        website: website.trim(),
+      }, { publicKey: emailjsPublicKey })
+      setSubmittedName(name.trim())
+      setSubmitted(true)
+      setName('')
+      setEmail('')
+      setCommunityName('')
+      setUniversityName('')
+      setDegreeName('')
+      setMemberCount('')
+      setMessage('')
+      setWebsite('')
+    } catch (sendError) {
+      setError(sendError?.text || sendError?.message || 'The registration email could not be sent. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return <PageFrame className="content-page contact-page">
@@ -348,14 +395,18 @@ function Contact() {
         <div className="contact-social"><small>Follow our journey</small><SocialLinks /></div>
       </div>
       <form className="contact-form" onSubmit={handleSubmit} noValidate>
-        <h2>Send us a message</h2><p>Fields marked with * are required.</p>
+        <h2>Register Your Community</h2><p>Fields marked with * are required.</p>
         <label htmlFor="contact-name">Name <span>*</span></label><input id="contact-name" name="name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required placeholder="Your name" />
         <label htmlFor="contact-email">Email <span>*</span></label><input id="contact-email" name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="you@example.com" />
+        <label htmlFor="community-name">Community name <span>*</span></label><input id="community-name" name="communityName" value={communityName} onChange={(event) => setCommunityName(event.target.value)} required placeholder="Your community name" />
+        <label htmlFor="university-name">University name <span>*</span></label><input id="university-name" name="universityName" value={universityName} onChange={(event) => setUniversityName(event.target.value)} required placeholder="Your university name" />
+        <label htmlFor="degree-name">Degree name <span>*</span></label><input id="degree-name" name="degreeName" value={degreeName} onChange={(event) => setDegreeName(event.target.value)} required placeholder="Your degree or program" />
+        <label htmlFor="member-count">Number of community members <span>*</span></label><input id="member-count" name="memberCount" type="number" min="1" step="1" value={memberCount} onChange={(event) => setMemberCount(event.target.value)} required placeholder="e.g. 25" />
         <label htmlFor="contact-message">Message <span>*</span></label><textarea id="contact-message" name="message" rows="5" value={message} onChange={(event) => setMessage(event.target.value)} required placeholder="How can we help?" />
+        <input className="feedback-honeypot" tabIndex="-1" autoComplete="off" aria-hidden="true" value={website} onChange={(event) => setWebsite(event.target.value)} />
         {error && <p className="form-feedback form-error" role="alert">{error}</p>}
-        {submitted && <p className="form-feedback form-success" role="status">Thank you, {name.trim()}. Your message is ready for the Rabt-e-Ahlebait team. This frontend demo has not sent or stored it.</p>}
-        <button className="button button-primary form-submit" type="submit">Send Message <ArrowRight size={15} /></button>
-        {/* A real email delivery service can be connected here when an approved endpoint is available. */}
+        {submitted && <p className="form-feedback form-success" role="status">Thank you, {submittedName}. Your community registration has been sent to the Rabt-e-Ahlebait team.</p>}
+        <button className="button button-primary form-submit" type="submit" disabled={submitting}>{submitting ? 'Sending…' : 'Register Community'} <ArrowRight size={15} /></button>
       </form>
     </section>
   </PageFrame>

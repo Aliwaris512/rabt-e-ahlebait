@@ -223,6 +223,10 @@ h1, h2, p { margin-top: 0; }
 .chapter-layout { display: grid; gap: clamp(22px, 4vw, 50px); grid-template-columns: 1.05fr .95fr; margin: 12px 0 48px; }
 .ucp-announcement { color: #58675c; font-size: 12px; line-height: 1.8; margin: 25px auto 0; max-width: 850px; }
 .ucp-announcement p { margin: 0 0 13px; }
+.ucp-social { margin: 25px auto 0; max-width: 850px; }
+.ucp-social .social-links { gap: 18px; margin-top: 10px; }
+.ucp-social .social-links a { background: #e9ecdf; border-radius: 50%; height: 42px; width: 42px; }
+.ucp-social .social-links svg { height: 22px; width: 22px; }
 .management-team { margin: 30px auto 48px; max-width: 760px; text-align: center; }
 .management-team h2 { color: var(--green); font: 600 25px var(--serif); margin: 0 0 28px; }
 .management-team-grid { align-items: start; display: grid; gap: 28px; grid-template-columns: repeat(3, 1fr); }
@@ -250,6 +254,8 @@ h1, h2, p { margin-top: 0; }
 .contact-detail a:hover { color: var(--green); text-decoration: underline; }
 .contact-social { border-top: 1px solid #e5e2d7; margin-top: 23px; padding-top: 16px; }
 .contact-social .social-links { gap: 14px; margin-top: 12px; }
+.contact-social .social-links a { background: #e9ecdf; border-radius: 50%; height: 44px; width: 44px; }
+.contact-social .social-links svg { height: 23px; width: 23px; }
 .contact-form { background: var(--card); border: 1px solid #e7e5db; box-shadow: 0 7px 24px rgba(23,43,35,.04); display: flex; flex-direction: column; padding: 23px 25px; }
 .contact-form h2 { color: var(--green); font: 600 21px var(--serif); margin: 0 0 5px; }
 .contact-form > p:not(.form-feedback) { color: var(--muted); font-size: 10px; margin: 0 0 16px; }

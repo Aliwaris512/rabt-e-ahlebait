@@ -60,6 +60,42 @@ Only users listed in `announcement_admins` can read drafts, create, edit, publis
 
 If email confirmation is enabled in Supabase Auth, confirm the administrator's email before signing in. If you want to use a different Auth provider, enable it in Supabase and adapt the sign-in form before deployment.
 
+## Community registration email
+
+The Contact page sends all seven registration fields to
+`rabteahlebayt@gmail.com` through EmailJS. EmailJS handles delivery in the
+browser; no custom backend or Gmail password is placed in the React app.
+
+### Configure EmailJS
+
+1. Create an account at [EmailJS](https://www.emailjs.com/).
+2. Add an email service connected to the destination Gmail account.
+3. Create a template whose **To email** is `rabteahlebayt@gmail.com`.
+4. Use these template variables:
+
+```text
+{{name}}
+{{email}}
+{{communityName}}
+{{universityName}}
+{{degreeName}}
+{{memberCount}}
+{{message}}
+```
+
+5. Copy `.env.example` to `.env.local` and set:
+
+```text
+VITE_EMAILJS_SERVICE_ID=your_service_id
+VITE_EMAILJS_TEMPLATE_ID=your_template_id
+VITE_EMAILJS_PUBLIC_KEY=your_public_key
+```
+
+The EmailJS public key, service ID, and template ID are intended for browser
+use. Do not put a Gmail password, app password, private API key, or service
+secret in `VITE_*` variables. Configure the same three variables in the
+production hosting provider and redeploy the frontend.
+
 ## Pakistan Shia Islamic Calendar and Jafari Prayer Times
 
 The public calendar is available at `/islamic-calendar`, with administration at `/admin/islamic-calendar`. Run [`supabase/migrations/003_create_islamic_calendar.sql`](./supabase/migrations/003_create_islamic_calendar.sql) after migration 002. It creates RLS-protected occasion and confirmed-date tables and reuses the existing `is_announcement_admin()` allowlist. No administrator credentials or service-role key are stored in the frontend.
