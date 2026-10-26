@@ -50,8 +50,8 @@ function Logo() {
   )
 }
 
-function SocialLinks({ compact = false }) {
-  const links = [
+function SocialLinks({ compact = false, links: customLinks }) {
+  const links = customLinks ?? [
     { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/rabteahlebait?xtok=MXh3d3BwaG03am5mdQ%3D%3D&utm_source=qr' },
     { name: 'TikTok', icon: TikTokIcon, href: 'https://www.tiktok.com/@rabteahlebait?_r=1&_t=ZS-9AmFSVtdf76' },
   ]
@@ -272,7 +272,10 @@ function UniversityDetail() {
         <p>You can also explore our social media platforms through this page, including our Instagram feed, to stay connected with the latest updates and activities.</p>
         <p>Two platforms, one community, one mission, spreading the message of the Ahl-e-Bayt (A.S.).</p>
       </div>
-      <div className="ucp-social"><span className="eyebrow">FOLLOW UCP COMMUNITY UPDATES</span><SocialLinks /></div>
+      <div className="ucp-social"><span className="eyebrow">FOLLOW UCP COMMUNITY UPDATES</span><SocialLinks links={[
+        { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/ucp_ahlebayt_community?dlrf=ZmlwYXFsazltaXE4' },
+        { name: 'TikTok', icon: TikTokIcon, href: 'https://www.tiktok.com/@ucpahlebaytsociety?_r=1&_t=ZS-9AsWxt5Dw1c' },
+      ]} /></div>
       <section className="management-team">
         <h2>Management Team</h2>
         <div className="management-team-grid">
