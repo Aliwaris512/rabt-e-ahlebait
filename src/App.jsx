@@ -367,6 +367,12 @@ function Contact() {
         memberCount: memberCount.trim(),
         message: message.trim(),
         website: website.trim(),
+        from_name: name.trim(),
+        from_email: email.trim(),
+        community_name: communityName.trim(),
+        university_name: universityName.trim(),
+        degree_name: degreeName.trim(),
+        member_count: memberCount.trim(),
       }, { publicKey: emailjsPublicKey })
       setSubmittedName(name.trim())
       setSubmitted(true)
@@ -389,7 +395,7 @@ function Contact() {
     <PageHeader title="Get In Touch" description="We'd love to hear from you! Whether you have a question, partnership inquiry or just want to connect — feel free to reach out." />
     <section className="contact-layout">
       <div className="contact-details"><span className="eyebrow">LET'S CONNECT</span><h2>We'd be glad<br />to hear from you.</h2>
-        <div className="contact-detail"><span><Mail size={17} /></span><div><small>Email</small><a href="mailto:rabteahlebait@gmail.com">rabteahlebait@gmail.com</a></div></div>
+        <div className="contact-detail"><span><Mail size={17} /></span><div><small>Email</small><a href="mailto:rabteahlebayt@gmail.com">rabteahlebayt@gmail.com</a></div></div>
         <div className="contact-detail"><span><MessageCircle size={17} /></span><div><small>Phone</small><a href="tel:+9647820036616">+964 782 003 6616</a></div></div>
         <div className="contact-detail"><span><Landmark size={17} /></span><div><small>Address</small><p>Rabt-e-Ahlebait Headquarters<br />Lahore, Pakistan</p></div></div>
         <div className="contact-social"><small>Follow our journey</small><SocialLinks /></div>

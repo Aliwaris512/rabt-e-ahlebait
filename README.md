@@ -83,6 +83,10 @@ browser; no custom backend or Gmail password is placed in the React app.
 {{message}}
 ```
 
+The form also sends `from_name`, `from_email`, `community_name`,
+`university_name`, `degree_name`, and `member_count` aliases for templates
+created with snake_case variable names.
+
 5. Copy `.env.example` to `.env.local` and set:
 
 ```text
