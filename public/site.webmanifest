@@ -1,0 +1,16 @@
+{
+  "name": "Rabt-e-Ahlebait",
+  "short_name": "Rabt-e-Ahlebait",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f6ef",
+  "theme_color": "#063d2e",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "768x768",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
