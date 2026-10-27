@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import emailjs from '@emailjs/browser'
 import {
   ArrowLeft, ArrowRight, BookOpen, Calendar, Check, ChevronDown, CircleHelp,
   Compass, Eye, HeartHandshake, House, Image, Instagram, Landmark, LogIn, LogOut, Mail, Menu,
-  MessageCircle, MessageSquareText, Pencil, Search, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, Users, X,
+  MessageCircle, MessageSquareText, Moon, Pencil, Search, ShieldCheck, Sparkles, Star, Sun, Target, Trash2, Upload, Users, X,
 } from 'lucide-react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { chapterActivities, universities } from './data/universities.js'
@@ -21,10 +21,10 @@ const pages = [
   { label: 'Mission & Vision', to: '/mission-vision', icon: Compass, description: 'Our purpose and aspirations' },
   { label: 'Policies', to: '/policies', icon: ShieldCheck, description: 'The principles that guide us' },
   { label: 'Partner Universities', to: '/partner-universities', icon: Landmark, description: 'Explore university listings' },
-  { label: 'Contact', to: '/contact', icon: MessageCircle, description: 'Get in touch with our team' },
-  { label: 'Reviews & Suggestions', to: '/reviews', icon: MessageSquareText, description: 'Share feedback and suggestions' },
   { label: 'Announcements', to: '/announcements', icon: Calendar, description: 'View community announcements and events' },
   { label: 'Islamic Calendar', to: '/islamic-calendar', icon: Calendar, description: 'Pakistan Shia calendar and Jafari prayer times' },
+  { label: 'Reviews & Suggestions', to: '/reviews', icon: MessageSquareText, description: 'Share feedback and suggestions' },
+  { label: 'Contact', to: '/contact', icon: MessageCircle, description: 'Get in touch with our team' },
 ]
 
 const policies = [
@@ -95,14 +95,14 @@ function Sidebar({ open, onClose }) {
             <NavLink to="/partner-universities" onClick={onClose} className={({ isActive }) => `side-sublink${isActive ? ' active' : ''}`}>All Universities</NavLink>
             {chapterLinks.map((item) => <NavLink key={item.to} to={item.to} onClick={onClose} className={({ isActive }) => `side-sublink${isActive ? ' active' : ''}`}>{item.label}</NavLink>)}
           </div>}
-          <NavLink to="/contact" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
-            <MessageCircle size={16} strokeWidth={1.8} /><span>Contact</span>
+          <NavLink to="/islamic-calendar" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
+            <Calendar size={16} strokeWidth={1.8} /><span>Islamic Calendar</span>
           </NavLink>
           <NavLink to="/reviews" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
             <MessageSquareText size={16} strokeWidth={1.8} /><span>Reviews & Suggestions</span>
           </NavLink>
-          <NavLink to="/islamic-calendar" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
-            <Calendar size={16} strokeWidth={1.8} /><span>Islamic Calendar</span>
+          <NavLink to="/contact" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
+            <MessageCircle size={16} strokeWidth={1.8} /><span>Contact</span>
           </NavLink>
         </nav>
         <div className="sidebar-bottom">
@@ -115,7 +115,7 @@ function Sidebar({ open, onClose }) {
   )
 }
 
-function Topbar({ onMenu }) {
+function Topbar({ onMenu, darkMode, onToggleTheme }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
@@ -154,6 +154,9 @@ function Topbar({ onMenu }) {
           </div>}
         </div>}
       </div>
+      <button className={`theme-toggle${darkMode ? ' theme-toggle-dark' : ''}`} type="button" onClick={onToggleTheme} aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`} title={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>
+        {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+      </button>
     </header>
   )
 }
@@ -244,7 +247,7 @@ function Policies() {
 function UniversityCard({ university }) {
   return <Link className="university-card" to={university.path}>
     <div className="university-emblem" aria-label={`${university.shortName} logo`}>
-      {university.logoImage ? <img src={university.logoImage} alt={`${university.name} logo`} /> : university.logo}
+      {university.logoImage ? <img className={university.shortName === 'Superior' ? 'superior-logo' : ''} src={university.logoImage} alt={`${university.name} logo`} /> : university.logo}
     </div>
     <span className="university-location">{university.location}</span><h2>{university.name}</h2>
     <span className="university-visit">View listing <ArrowRight size={14} /></span>
@@ -326,6 +329,7 @@ function Contact() {
   const [submitting, setSubmitting] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [contactNumber, setContactNumber] = useState('')
   const [communityName, setCommunityName] = useState('')
   const [universityName, setUniversityName] = useState('')
   const [degreeName, setDegreeName] = useState('')
@@ -337,7 +341,7 @@ function Contact() {
   async function handleSubmit(event) {
     event.preventDefault()
     setSubmitted(false)
-    if (!name.trim() || !email.trim() || !communityName.trim() || !universityName.trim() || !degreeName.trim() || !memberCount.trim() || !message.trim()) {
+    if (!name.trim() || !email.trim() || !contactNumber.trim() || !communityName.trim() || !universityName.trim() || !degreeName.trim() || !memberCount.trim() || !message.trim()) {
       setError('Please complete all fields before submitting.')
       setSubmitted(false)
       return
@@ -345,6 +349,10 @@ function Contact() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address.')
       setSubmitted(false)
+      return
+    }
+    if (!/^[\d\s()+-]{7,25}$/.test(contactNumber.trim()) || contactNumber.replace(/\D/g, '').length < 7) {
+      setError('Please enter a valid contact number.')
       return
     }
     if (!/^[1-9]\d*$/.test(memberCount.trim())) {
@@ -364,6 +372,7 @@ function Contact() {
       await emailjs.send(emailjsServiceId, emailjsTemplateId, {
         name: name.trim(),
         email: email.trim(),
+        contactNumber: contactNumber.trim(),
         communityName: communityName.trim(),
         universityName: universityName.trim(),
         degreeName: degreeName.trim(),
@@ -372,6 +381,7 @@ function Contact() {
         website: website.trim(),
         from_name: name.trim(),
         from_email: email.trim(),
+        contact_number: contactNumber.trim(),
         community_name: communityName.trim(),
         university_name: universityName.trim(),
         degree_name: degreeName.trim(),
@@ -381,6 +391,7 @@ function Contact() {
       setSubmitted(true)
       setName('')
       setEmail('')
+      setContactNumber('')
       setCommunityName('')
       setUniversityName('')
       setDegreeName('')
@@ -407,6 +418,7 @@ function Contact() {
         <h2>Register Your Community</h2><p>Fields marked with * are required.</p>
         <label htmlFor="contact-name">Name <span>*</span></label><input id="contact-name" name="name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required placeholder="Your name" />
         <label htmlFor="contact-email">Email <span>*</span></label><input id="contact-email" name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="you@example.com" />
+        <label htmlFor="contact-number">Contact number <span>*</span></label><input id="contact-number" name="contactNumber" type="tel" autoComplete="tel" value={contactNumber} onChange={(event) => setContactNumber(event.target.value)} required placeholder="e.g. +92 300 1234567" />
         <label htmlFor="community-name">Community name <span>*</span></label><input id="community-name" name="communityName" value={communityName} onChange={(event) => setCommunityName(event.target.value)} required placeholder="Your community name" />
         <label htmlFor="university-name">University name <span>*</span></label><input id="university-name" name="universityName" value={universityName} onChange={(event) => setUniversityName(event.target.value)} required placeholder="Your university name" />
         <label htmlFor="degree-name">Degree name <span>*</span></label><input id="degree-name" name="degreeName" value={degreeName} onChange={(event) => setDegreeName(event.target.value)} required placeholder="Your degree or program" />
@@ -744,7 +756,36 @@ const metadata = {
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [themeSwitching, setThemeSwitching] = useState(false)
+  const themeTimer = useRef(null)
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return window.localStorage.getItem('rabt-theme') === 'dark'
+    } catch {
+      return false
+    }
+  })
   const location = useLocation()
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light'
+    try {
+      window.localStorage.setItem('rabt-theme', darkMode ? 'dark' : 'light')
+    } catch {
+      // Theme still works for the current session when storage is unavailable.
+    }
+  }, [darkMode])
+
+  useEffect(() => () => {
+    if (themeTimer.current) window.clearTimeout(themeTimer.current)
+  }, [])
+
+  function toggleTheme() {
+    if (themeTimer.current) window.clearTimeout(themeTimer.current)
+    setDarkMode((current) => !current)
+    setThemeSwitching(true)
+    themeTimer.current = window.setTimeout(() => setThemeSwitching(false), 700)
+  }
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -756,9 +797,9 @@ function App() {
     if (meta) meta.setAttribute('content', description)
   }, [location.pathname])
 
-  return <div className="app-shell">
+  return <div className={`app-shell${themeSwitching ? ' theme-switching' : ''}`}>
     <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-    <div className="content-shell"><Topbar onMenu={() => setMenuOpen(true)} /><Routes>
+    <div className="content-shell"><Topbar onMenu={() => setMenuOpen(true)} darkMode={darkMode} onToggleTheme={toggleTheme} /><Routes>
       <Route path="/" element={<Home />} />
       {/* <Route path="/founder" element={<Founder />} /> */}
       <Route path="/mission-vision" element={<MissionVision />} />

@@ -62,7 +62,7 @@ If email confirmation is enabled in Supabase Auth, confirm the administrator's e
 
 ## Community registration email
 
-The Contact page sends all seven registration fields to
+The Contact page sends all eight registration fields to
 `rabteahlebayt@gmail.com` through EmailJS. EmailJS handles delivery in the
 browser; no custom backend or Gmail password is placed in the React app.
 
@@ -76,6 +76,7 @@ browser; no custom backend or Gmail password is placed in the React app.
 ```text
 {{name}}
 {{email}}
+{{contactNumber}}
 {{communityName}}
 {{universityName}}
 {{degreeName}}
@@ -83,7 +84,7 @@ browser; no custom backend or Gmail password is placed in the React app.
 {{message}}
 ```
 
-The form also sends `from_name`, `from_email`, `community_name`,
+The form also sends `from_name`, `from_email`, `contact_number`, `community_name`,
 `university_name`, `degree_name`, and `member_count` aliases for templates
 created with snake_case variable names.
 

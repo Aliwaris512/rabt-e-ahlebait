@@ -11,6 +11,17 @@ export const universities = [
     externalUrl: 'https://ucp.edu.pk/',
   },
   {
+    name: 'Superior University',
+    shortName: 'Superior',
+    path: '/partner-universities/superior',
+    logo: 'SU',
+    logoImage: '/assets/superior-university.png',
+    location: 'Lahore, Pakistan',
+    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1100&q=85',
+    description: 'A university listing for students interested in faith, learning and service at Superior University.',
+    externalUrl: 'https://www.superior.edu.pk/',
+  },
+  {
     name: 'University of Lahore',
     shortName: 'University of Lahore',
     path: '/partner-universities/university-of-lahore',
