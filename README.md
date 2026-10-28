@@ -86,7 +86,33 @@ browser; no custom backend or Gmail password is placed in the React app.
 
 The form also sends `from_name`, `from_email`, `contact_number`, `community_name`,
 `university_name`, `degree_name`, and `member_count` aliases for templates
-created with snake_case variable names.
+created with snake_case variable names. It also sends `phone`, `phoneNumber`,
+`phone_number`, and a complete `registrationDetails` block for templates that
+use a different phone variable name.
+
+The EmailJS template must explicitly include the contact number. For example,
+set the template body to:
+
+```text
+New community registration
+
+Name: {{name}}
+Email: {{email}}
+Contact number: {{contactNumber}}
+Community: {{communityName}}
+University: {{universityName}}
+Degree: {{degreeName}}
+Members: {{memberCount}}
+Message:
+{{message}}
+
+Complete details:
+{{registrationDetails}}
+```
+
+If the existing template uses snake_case variables, use `{{contact_number}}`
+instead. Saving the React code alone cannot make a variable appear in an
+EmailJS email when that variable is not included in the EmailJS template body.
 
 5. Copy `.env.example` to `.env.local` and set:
 
@@ -104,6 +130,35 @@ production hosting provider and redeploy the frontend.
 ## Pakistan Shia Islamic Calendar and Jafari Prayer Times
 
 The public calendar is available at `/islamic-calendar`, with administration at `/admin/islamic-calendar`. Run [`supabase/migrations/003_create_islamic_calendar.sql`](./supabase/migrations/003_create_islamic_calendar.sql) after migration 002. It creates RLS-protected occasion and confirmed-date tables and reuses the existing `is_announcement_admin()` allowlist. No administrator credentials or service-role key are stored in the frontend.
+
+## Urdu Islamic Stories
+
+The public Urdu-first stories library is available at `/stories`; permanent article URLs use `/stories/<slug>`. Authorized publishing is available at `/admin/stories`. The editor stores plain text with safe formatting markers (`# heading`, `> quotation`, and blank lines for paragraphs), so article content is rendered without unsafe HTML.
+
+### Configure the stories database
+
+Run [`supabase/migrations/004_create_stories.sql`](./supabase/migrations/004_create_stories.sql) after migration 003. It creates the `story_categories`, `stories`, and `story_sources` tables, indexes, RLS policies, the `story-covers` public bucket, and its Storage policies. It reuses the existing `announcement_admins` administrator allowlist and `is_announcement_admin()` database function. Run [`supabase/migrations/005_seed_story_samples.sql`](./supabase/migrations/005_seed_story_samples.sql) after it if you want the three reviewed sample articles. If migration 004 was already applied, run [`supabase/migrations/006_allow_existing_story_admins.sql`](./supabase/migrations/006_allow_existing_story_admins.sql) once so any existing allowlisted administrator can edit all stories. The sample references intentionally omit edition-specific page numbers where they have not been verified; the article notes distinguish historical reports and disputed details.
+
+RLS permits anonymous and normal authenticated users to read only published stories, their categories, published cover images, and sources belonging to published stories. Drafts and draft sources are hidden at the database policy level. Only users already present in `public.announcement_admins` can create, edit, publish, unpublish, delete stories or manage covers. Do not expose a service-role key in the frontend.
+
+### Administrator and storage setup
+
+Use the administrator user that already exists in Supabase **Authentication → Users**. If that user is already present in the existing `public.announcement_admins` allowlist, no new user or administrator setup is required. If the existing user is not in the allowlist, add its UUID:
+
+```sql
+insert into public.announcement_admins (user_id)
+values ('AUTH_USER_UUID');
+```
+
+The migration creates the `story-covers` bucket automatically. Cover paths are stored as `<story UUID>/<random filename>`. Public object reads are allowed only when the related story is published; administrator upload, update, and delete operations are protected by the same database authorization function.
+
+### SEO and deployment
+
+Story detail pages set Urdu document titles, descriptions, canonical URLs, and Open Graph title/description/type metadata from published story data. The static sitemap includes the library index. Add each published `/stories/<slug>` URL to a generated sitemap at deployment time if the hosting pipeline supports it; never include drafts. Vercel's existing SPA rewrite in [`vercel.json`](./vercel.json) is required for direct story and admin URL refreshes. The current client-rendered pages are crawlable after JavaScript execution; fully server-rendered article previews would require a prerendering/SSR deployment change.
+
+### Verification
+
+After applying migrations, verify with three Supabase sessions: an anonymous client must list published rows but receive no drafts; an ordinary authenticated user must have the same published-only view and receive permission errors for writes; a user listed in `announcement_admins` must be able to create a draft, upload a cover, publish/unpublish it, replace sources, and delete it. In the browser, test `/stories`, Urdu title search, category filtering, `/stories/<slug>`, WhatsApp sharing, `/admin/stories`, retry/empty states, and a direct URL refresh.
 
 Shia.pk was inspected as the Pakistan-focused reference. It provides public community/prayer information but no documented public calendar API suitable for this frontend, so its pages are not scraped. Confirmed Pakistani Shia dates must be entered by an authorized administrator in the calendar admin page with a source and reason. Public visitors see only published occasions and `verified`/`confirmed` overrides; awaiting dates remain hidden from the public confirmed data.
 

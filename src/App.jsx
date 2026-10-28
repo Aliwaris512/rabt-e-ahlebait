@@ -14,6 +14,7 @@ import {
 } from './lib/announcements.js'
 import { supabase } from './lib/supabaseClient.js'
 import { AdminIslamicCalendar, IslamicCalendar } from './IslamicCalendar.jsx'
+import { AdminStories, Stories, StoryDetail } from './Stories.jsx'
 
 const pages = [
   { label: 'Home', to: '/', icon: House, description: 'Welcome to Rabt-e-Ahlebait' },
@@ -23,6 +24,7 @@ const pages = [
   { label: 'Partner Universities', to: '/partner-universities', icon: Landmark, description: 'Explore university listings' },
   { label: 'Announcements', to: '/announcements', icon: Calendar, description: 'View community announcements and events' },
   { label: 'Islamic Calendar', to: '/islamic-calendar', icon: Calendar, description: 'Pakistan Shia calendar and Jafari prayer times' },
+  { label: 'Islamic Stories', to: '/stories', icon: BookOpen, description: 'Urdu Islamic stories and Ahl-e-Bait biographies' },
   { label: 'Reviews & Suggestions', to: '/reviews', icon: MessageSquareText, description: 'Share feedback and suggestions' },
   { label: 'Contact', to: '/contact', icon: MessageCircle, description: 'Get in touch with our team' },
 ]
@@ -97,6 +99,9 @@ function Sidebar({ open, onClose }) {
           </div>}
           <NavLink to="/islamic-calendar" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
             <Calendar size={16} strokeWidth={1.8} /><span>Islamic Calendar</span>
+          </NavLink>
+          <NavLink to="/stories" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
+            <BookOpen size={16} strokeWidth={1.8} /><span>Islamic Stories</span>
           </NavLink>
           <NavLink to="/reviews" onClick={onClose} className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
             <MessageSquareText size={16} strokeWidth={1.8} /><span>Reviews & Suggestions</span>
@@ -369,10 +374,23 @@ function Contact() {
     setError('')
     setSubmitting(true)
     try {
+      const cleanContactNumber = contactNumber.trim()
+      const registrationDetails = [
+        `Name: ${name.trim()}`,
+        `Email: ${email.trim()}`,
+        `Contact number: ${cleanContactNumber}`,
+        `Community name: ${communityName.trim()}`,
+        `University name: ${universityName.trim()}`,
+        `Degree name: ${degreeName.trim()}`,
+        `Number of community members: ${memberCount.trim()}`,
+        `Message: ${message.trim()}`,
+      ].join('\n')
       await emailjs.send(emailjsServiceId, emailjsTemplateId, {
         name: name.trim(),
         email: email.trim(),
-        contactNumber: contactNumber.trim(),
+        contactNumber: cleanContactNumber,
+        phone: cleanContactNumber,
+        phoneNumber: cleanContactNumber,
         communityName: communityName.trim(),
         universityName: universityName.trim(),
         degreeName: degreeName.trim(),
@@ -381,7 +399,9 @@ function Contact() {
         website: website.trim(),
         from_name: name.trim(),
         from_email: email.trim(),
-        contact_number: contactNumber.trim(),
+        contact_number: cleanContactNumber,
+        phone_number: cleanContactNumber,
+        registrationDetails,
         community_name: communityName.trim(),
         university_name: universityName.trim(),
         degree_name: degreeName.trim(),
@@ -410,7 +430,7 @@ function Contact() {
     <section className="contact-layout">
       <div className="contact-details"><span className="eyebrow">LET'S CONNECT</span><h2>We'd be glad<br />to hear from you.</h2>
         <div className="contact-detail"><span><Mail size={17} /></span><div><small>Email</small><a href="mailto:rabteahlebayt@gmail.com">rabteahlebayt@gmail.com</a></div></div>
-        <div className="contact-detail"><span><MessageCircle size={17} /></span><div><small>Phone</small><a href="tel:+9647820036616">+964 782 003 6616</a></div></div>
+        <div className="contact-detail"><span><MessageCircle size={17} /></span><div><small>Phone</small><a href="tel:+447344860857">+44 7344 860857</a></div></div>
         <div className="contact-detail"><span><Landmark size={17} /></span><div><small>Address</small><p>Rabt-e-Ahlebait Headquarters<br />Lahore, Pakistan</p></div></div>
         <div className="contact-social"><small>Follow our journey</small><SocialLinks /></div>
       </div>
@@ -813,6 +833,9 @@ function App() {
       <Route path="/admin/announcements" element={<AdminAnnouncements />} />
       <Route path="/islamic-calendar" element={<IslamicCalendar />} />
       <Route path="/admin/islamic-calendar" element={<AdminIslamicCalendar />} />
+      <Route path="/stories" element={<Stories />} />
+      <Route path="/stories/:slug" element={<StoryDetail />} />
+      <Route path="/admin/stories" element={<AdminStories />} />
       <Route path="*" element={<NotFound />} />
     </Routes></div>
   </div>
